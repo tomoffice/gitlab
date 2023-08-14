@@ -29,7 +29,7 @@ build:
     - Default
   only:
     - chipM2 #這裡我改了一個macos能跑的版本原本是amd64的image
-						 #同時遇到了ubuntu與alpine之間的clib 與 glib的差異
+	     #同時遇到了ubuntu與alpine之間的clib 與 glib的差異
 
 test:
   stage: test
