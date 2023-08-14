@@ -1,0 +1,57 @@
+image: docker:latest
+
+services:
+  - name: docker:dind #為了讓daemon可以使用
+    command: ["--insecure-registry=192.168.10.100:5005"]
+stages:
+  - build
+  - test
+  - deploy
+variables:
+  GO111MODULE: "on"
+  DOCKER_HOST: tcp://docker:2375 #官方關閉TLS #指示runner使用docker:dind的daemon
+  DOCKER_TLS_CERTDIR: "" #官方關閉TLS
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - apk add --no-cache go
+  - go version
+	# 預先下載所有依賴關係
+  - go mod download  
+  # 登錄 GitLab Container Registry
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+build:
+  stage: build
+  script:
+    - docker build --platform linux/arm64 -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+  tags:
+    - Default
+  only:
+    - chipM2 #這裡我改了一個macos能跑的版本原本是amd64的image
+						 #同時遇到了ubuntu與alpine之間的clib 與 glib的差異
+
+test:
+  stage: test
+  variables:
+    SERVER: 192.168.10.102
+  script:
+    #- docker run -e SERVER=192.168.10.102 "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" go test -v ./...
+    - go test -v ./...
+  tags:
+    - Default
+  only:
+    - chipM2
+
+deploy:
+  stage: deploy
+  script:
+    - docker pull "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" tomoffice/rabbitmq:arm64
+    - echo "$DOCKERHUB_PASSWORD" | docker login -u $DOCKERHUB_USERNAME --password-stdin
+    - docker push tomoffice/rabbitmq:arm64
+    - docker logout
+  tags:
+    - Default
+  only:
+    - chipM2
