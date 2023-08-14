@@ -4,7 +4,7 @@ services:
     image: 'gitlab/gitlab-ee:latest'
     container_name: gitlab
     restart: always
-    hostname: 'tomoffice.duckdns.org'
+    hostname: 'YOUR_HOSTNAME'
     environment:
       GITLAB_OMNIBUS_CONFIG: |
         external_url 'http://192.168.10.100:5100'
