@@ -3,7 +3,10 @@
 ### Install(docker compose)
 
 ce 與 ee 差異基本一樣但是建議安裝ee因為沒付費等於ce只要付錢就可以變成ee
+
 https://hsunstudio.notion.site/GitLab-ee-Locally-1cec8d49edb64a078aa1c1a13046e657?pvs=4(notion 縮減版)
+
+
 ```yaml
 version: '3.6'
 services:
