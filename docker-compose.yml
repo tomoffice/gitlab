@@ -1,0 +1,40 @@
+version: '3.6'
+services:
+  gitlab:
+    image: 'gitlab/gitlab-ee:latest'
+    container_name: gitlab
+    restart: always
+    hostname: 'tomoffice.duckdns.org'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://192.168.10.100:5100'
+        gitlab_rails['gitlab_shell_ssh_port'] = 22
+        gitlab_rails['registry_enabled'] = true
+        gitlab_rails['registry_host'] = "192.168.10.100"
+        gitlab_rails['registry_port'] = "5005"
+        gitlab_rails['registry_path'] = "/var/opt/gitlab/gitlab-rails/shared/registry"
+        registry_external_url 'http://192.168.10.100:5005'
+    ports:
+      - '5100:5100'
+      - '443:443'
+      - '22:22'
+      - "5005:5005"
+    volumes:
+      - config:/etc/gitlab
+      - logs:/var/log/gitlab
+      - data:/var/opt/gitlab
+    shm_size: '256m'
+
+  gitlab-runner:
+    image: 'gitlab/gitlab-runner:latest'
+    container_name: gitlab-runner
+    restart: always
+    volumes:
+      - gitlab_runner_config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  config:
+  logs:
+  data:
+  gitlab_runner_config:
